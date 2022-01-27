@@ -1,25 +1,20 @@
 using UnityEngine;
 using Mirror;
+using System;
 
 public class CustomNetworkManager : NetworkManager
 {
-    public override void OnServerConnect(NetworkConnection conn)
+    [SerializeField] GameObject _waitingPanel;
+
+    public override void OnServerAddPlayer(NetworkConnection conn)
     {
-        base.OnServerConnect(conn);
+        GameObject player = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
+        NetworkServer.AddPlayerForConnection(conn, player);
+
+        Debug.Log(numPlayers);
+
+        if (numPlayers == 2)
+            GameManager.instance.StartGame();
     }
 
-    public override void OnServerDisconnect(NetworkConnection conn)
-    {
-        base.OnServerDisconnect(conn);
-    }
-
-    public override void OnClientConnect()
-    {
-        base.OnClientConnect();
-    }
-
-    public override void OnClientDisconnect()
-    {
-        base.OnClientDisconnect();
-    }
 }
