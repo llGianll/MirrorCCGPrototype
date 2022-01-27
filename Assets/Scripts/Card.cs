@@ -5,10 +5,17 @@ using Mirror;
 
 public class Card : NetworkBehaviour
 {
-    [SyncVar] public CardStats cardStats;
-    [SyncVar] public string cardName;
+    [SyncVar(hook = nameof(OnCardStatsUpdate))] public CardStats cardStats;
+    [SyncVar(hook = nameof(OnCardNameUpdate))] public string cardName;
     [SyncVar] public string cardDescription;
-    [SyncVar] public int cardCost;
+    [SyncVar(hook = nameof(OnCardCostUpdate))] public int cardCost;
+
+    [SerializeField] CardUI _cardUI;
+
+    //[refactor] hooks later
+    void OnCardStatsUpdate(CardStats oldValue, CardStats newValue) => _cardUI.UpdateCardUI();
+    void OnCardNameUpdate(string oldValue, string newValue) => _cardUI.UpdateCardUI();
+    void OnCardCostUpdate(int oldValue, int newValue) => _cardUI.UpdateCardUI();
 
     public void LoadCardData(CardData cardData)
     {

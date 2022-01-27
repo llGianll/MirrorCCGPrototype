@@ -19,3 +19,4 @@ MonoBehaviour:
     speed: 1
     attack: 2
     armor: 0
+  _cardCost: 1
