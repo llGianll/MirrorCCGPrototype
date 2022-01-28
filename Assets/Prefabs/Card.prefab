@@ -661,6 +661,7 @@ MonoBehaviour:
   _armorText: {fileID: 3585921374740866867}
   _speedText: {fileID: 2565977865527541765}
   _attackText: {fileID: 5730303358882408207}
+  _cardBackGO: {fileID: 7347756554319549166}
   _card: {fileID: 8937071811066263101}
 --- !u!1 &2284493665716227738
 GameObject:

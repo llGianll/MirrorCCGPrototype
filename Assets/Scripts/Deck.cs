@@ -22,7 +22,6 @@ public class Deck : NetworkBehaviour
     [ClientRpc]
     public void RPCStartGame()
     {
-        Debug.Log("START GAME RPC");
         CmdLoadDeck();
     }
 
@@ -61,8 +60,8 @@ public class Deck : NetworkBehaviour
         {
             _cardsOnDeck.RemoveAt(0);
         }
-        Debug.Log("TO HAND CMD:" + _cardsOnHand[0].name);
 
+        //client/s card draw 
         foreach (var card in _cardsOnHand)
         {
             RPCDrawCards(card);
@@ -76,7 +75,10 @@ public class Deck : NetworkBehaviour
         if(hasAuthority)
             card.transform.SetParent(BoardManager.instance.board.playerCardArea, false);
         else
+        {
+            card.GetComponent<CardUI>().enableCardBack(true);
             card.transform.SetParent(BoardManager.instance.board.enemyCardArea, false);
+        }
 
     }
 }

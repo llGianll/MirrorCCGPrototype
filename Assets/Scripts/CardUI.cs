@@ -13,6 +13,8 @@ public class CardUI : MonoBehaviour
     [SerializeField] TMP_Text _speedText;
     [SerializeField] TMP_Text _attackText;
 
+    [SerializeField] GameObject _cardBackGO;
+ 
     [Header("References")]
     [SerializeField] Card _card;
 
@@ -24,5 +26,10 @@ public class CardUI : MonoBehaviour
         _armorText.text     = _card.cardStats.armor.ToString();
         _speedText.text     = _card.cardStats.speed.ToString();
         _attackText.text    = _card.cardStats.attack.ToString();
+    }
+
+    public void enableCardBack(bool enabled)
+    {
+        _cardBackGO.SetActive(enabled);
     }
 }
