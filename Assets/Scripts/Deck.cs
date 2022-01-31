@@ -12,7 +12,14 @@ public class Deck : NetworkBehaviour
     public readonly SyncList<GameObject> _cardsOnDeck = new SyncList<GameObject>();
     public readonly SyncList<GameObject> _cardsOnHand = new SyncList<GameObject>();
 
+    public static Deck ownDeck;
+
     //public List<GameObject> _cardsOnDeck = new List<GameObject>();
+
+    public override void OnStartLocalPlayer()
+    {
+        ownDeck = this;
+    }
 
     private void Start()
     {
@@ -42,6 +49,7 @@ public class Deck : NetworkBehaviour
         {
             GameObject card = Instantiate(_cardPrefab, Vector3.zero, Quaternion.identity);
             card.GetComponent<Card>().LoadCardData(cardData);
+            card.GetComponent<Card>().ownerOnServer = this.GetComponent<Player>();
             NetworkServer.Spawn(card, connectionToClient);
             card.transform.SetParent(this.transform);
             _cardsOnDeck.Add(card);
@@ -73,12 +81,19 @@ public class Deck : NetworkBehaviour
     private void RPCDrawCards(GameObject card)
     {
         if(hasAuthority)
-            card.transform.SetParent(BoardManager.instance.board.playerCardArea, false);
+            card.transform.SetParent(BoardManager.instance.board.playerCardArea.dropArea, false);
         else
         {
             card.GetComponent<CardUI>().enableCardBack(true);
-            card.transform.SetParent(BoardManager.instance.board.enemyCardArea, false);
+            card.transform.SetParent(BoardManager.instance.board.enemyCardArea.dropArea, false);
         }
 
+    }
+
+    [Command]
+    public void CMDRemoveCardFromHand(GameObject card)
+    {
+        //[refactor] create a more generic class for handling collection of cards(ex: hands, deck, graveyard, etc.) with their own remove functions
+        _cardsOnHand.Remove(card);
     }
 }

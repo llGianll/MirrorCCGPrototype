@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using Mirror;
 
-public class CardUI : MonoBehaviour
+public class CardUI : NetworkBehaviour
 {
     [Header("Card UI Refs")]
     [SerializeField] TMP_Text _nameText;
