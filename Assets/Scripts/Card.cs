@@ -15,7 +15,11 @@ public class Card : NetworkBehaviour
 
     Player _ownerOnServer;
 
-    public Player ownerOnServer { set { _ownerOnServer = value; } } //which of the copy of the players on the server owns this card
+    public Player ownerOnServer //which of the copy of the players on the server owns this card
+    {
+        get { return _ownerOnServer; }
+        set { _ownerOnServer = value; }
+    } 
 
     //[refactor] hooks later
     void OnCardStatsUpdate(CardStats oldValue, CardStats newValue) => _cardUI.UpdateCardUI();
@@ -25,17 +29,22 @@ public class Card : NetworkBehaviour
 
     public void LoadCardData(CardData cardData)
     {
-        cardStats = cardData.cardStats;
+        cardStats.armor = cardData.cardStats.armor;
+        cardStats.health = cardData.cardStats.health;
+        cardStats.speed = cardData.cardStats.speed;
+        cardStats.attack = cardData.cardStats.attack;
+
         cardName = cardData.cardName;
         cardDescription = cardData.cardDescription;
         cardCost = cardData.cardCost;
+        gameObject.name = cardName;
     }
 
     [Command]
     public void CMDRequestPlayCard()
     {
         //mana validation here
-        if(_ownerOnServer.currentMana >= cardCost)
+        if (_ownerOnServer.currentMana >= cardCost)
         {
             RPCPlayCard();
             RPCDisplayPlayedCard();
@@ -44,7 +53,7 @@ public class Card : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RPCDisplayPlayedCard() 
+    public void RPCDisplayPlayedCard()
     {
         if (hasAuthority)
             this.transform.SetParent(BoardManager.instance.board.playerFrontlineArea.dropArea, false);
@@ -52,13 +61,20 @@ public class Card : NetworkBehaviour
             this.transform.SetParent(BoardManager.instance.board.enemyFrontlineArea.dropArea, false);
 
         _cardUI.enableCardBack(false);
-        
+
     }
 
     [TargetRpc]
     public void RPCPlayCard()
     {
-        Deck.ownDeck.CMDRemoveCardFromHand(this.gameObject);
+        CardManager.instance.CMDPlayCard(this.gameObject);
         Player.localPlayer.CMDDecreaseMana(cardCost);
+    }
+
+    [ClientRpc]
+    public void RPCUpdateStats(CardStats stats)
+    {
+        cardStats = stats;
+        _cardUI.UpdateCardUI();
     }
 }

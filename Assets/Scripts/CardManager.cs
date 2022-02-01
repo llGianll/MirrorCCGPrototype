@@ -4,21 +4,21 @@ using UnityEngine;
 using Mirror;
 using System;
 
-public class Deck : NetworkBehaviour
+public class CardManager : NetworkBehaviour
 {
     [SerializeField] DeckData _deckData;
     [SerializeField] GameObject _cardPrefab;
 
     public readonly SyncList<GameObject> _cardsOnDeck = new SyncList<GameObject>();
     public readonly SyncList<GameObject> _cardsOnHand = new SyncList<GameObject>();
+    public readonly SyncList<GameObject> _cardsOnField = new SyncList<GameObject>();
+    public readonly SyncList<GameObject> _cardGraveyard = new SyncList<GameObject>();
 
-    public static Deck ownDeck;
-
-    //public List<GameObject> _cardsOnDeck = new List<GameObject>();
+    public static CardManager instance;
 
     public override void OnStartLocalPlayer()
     {
-        ownDeck = this;
+        instance = this;
     }
 
     private void Start()
@@ -91,9 +91,10 @@ public class Deck : NetworkBehaviour
     }
 
     [Command]
-    public void CMDRemoveCardFromHand(GameObject card)
+    public void CMDPlayCard(GameObject card)
     {
         //[refactor] create a more generic class for handling collection of cards(ex: hands, deck, graveyard, etc.) with their own remove functions
         _cardsOnHand.Remove(card);
+        _cardsOnField.Add(card);
     }
 }
