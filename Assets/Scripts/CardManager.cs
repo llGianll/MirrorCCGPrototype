@@ -14,11 +14,11 @@ public class CardManager : NetworkBehaviour
     public readonly SyncList<GameObject> _cardsOnField = new SyncList<GameObject>();
     public readonly SyncList<GameObject> _cardGraveyard = new SyncList<GameObject>();
 
-    public static CardManager instance;
+    public static CardManager clientInstance;
 
     public override void OnStartLocalPlayer()
     {
-        instance = this;
+        clientInstance = this;
     }
 
     private void Start()
@@ -97,4 +97,13 @@ public class CardManager : NetworkBehaviour
         _cardsOnHand.Remove(card);
         _cardsOnField.Add(card);
     }
+
+
+    [Server]
+    public void RemoveCardFromField(GameObject card)
+    {
+        _cardsOnField.Remove(card);
+        _cardGraveyard.Add(card);
+    }
+
 }

@@ -27,7 +27,6 @@ public class CardDragDrop : NetworkBehaviour, IBeginDragHandler, IDragHandler, I
         if (!isDraggable)
             return;
 
-        //_card.CMDRequestPlayCard(this.gameObject);
         _card.CMDRequestPlayCard();
     }
 

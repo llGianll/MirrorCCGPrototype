@@ -5,15 +5,33 @@ using UnityEngine.UI;
 using System.Linq;
 using System.Collections;
 
+[System.Serializable]
+public class CardsOnCombat
+{
+    public GameObject attackingCard;
+    public bool isDead = false;
+
+    public CardsOnCombat(GameObject card, bool isDead)
+    {
+        attackingCard = card;
+        this.isDead = isDead;
+    }
+}
+
 public class CombatManager : NetworkBehaviour
 {
     public static CombatManager instance;
 
-    public List<GameObject> _cardsOnCombat = new List<GameObject>();
+    public List<CardsOnCombat> _cardsOnCombat = new List<CardsOnCombat>();
 
     [SyncVar] int _readyPlayersCount;
 
     List<CardManager> _cardManagers = new List<CardManager>(); //player cardManager references
+
+    private void Awake()
+    {
+        instance = this;
+    }
 
     [Client]
     public void EndMainPhaseBtn(Button endButton)
@@ -25,7 +43,7 @@ public class CombatManager : NetworkBehaviour
     [Command(requiresAuthority = false)]
     public void CMDUpdateReadyCount()
     {
-        _readyPlayersCount++; 
+        _readyPlayersCount++;
         if (_readyPlayersCount >= 2)
             CombatEvaluation();
     }
@@ -43,25 +61,34 @@ public class CombatManager : NetworkBehaviour
 
         _cardsOnCombat.Clear();
 
-        _cardsOnCombat = _cardManagers[0]._cardsOnField.Concat(_cardManagers[1]._cardsOnField)
+        var tempList = _cardManagers[0]._cardsOnField.Concat(_cardManagers[1]._cardsOnField)
                                          .OrderByDescending(x => x.GetComponent<Card>().cardStats.speed)
                                          .ToList();
+
+        foreach (var cardGO in tempList)
+        {
+            CardsOnCombat cardEntry = new CardsOnCombat(cardGO, false);
+            _cardsOnCombat.Add(cardEntry);
+        }
+
         StartCoroutine(UnitCombat());
     }
 
     [Server]
     IEnumerator UnitCombat()
     {
-        //[Todo] change iteration to backwards when unit death is implemented to avoid list modification exception 
-        //[refactor] too much getcomponent calls, there should be a better way to structure this
+        //[refactor] too much GetComponent calls, there should be a better way to structure this
         //It will be better if the server has its own version of the board state, but for now this unoptmized code will do
         foreach (var card in _cardsOnCombat)
         {
+            if (card.isDead) //skip the card when it died before its turn 
+                continue;
+
             //identify which is the opponent player 
             CardManager opponentCardManager = new CardManager();
             foreach (var manager in _cardManagers)
             {
-                if (manager.GetComponent<Player>() != card.GetComponent<Card>().ownerOnServer)
+                if (manager.GetComponent<Player>() != card.attackingCard.GetComponent<Card>().ownerOnServer)
                 {
                     opponentCardManager = manager;
                     break;
@@ -69,16 +96,35 @@ public class CombatManager : NetworkBehaviour
             }
 
             //get first card on field of that opponent 
-            Card opponentCard = opponentCardManager._cardsOnField[0].GetComponent<Card>();
-            opponentCard.cardStats.health -= card.GetComponent<Card>().cardStats.attack;
+            Card opponentCard = opponentCardManager._cardsOnField.FirstOrDefault()?.GetComponent<Card>();
+
+            //[Todo]: add opponent player targeting here later 
+            if (opponentCard == null)
+            {
+                Debug.Log("No Opponent Unit on Board!");
+                continue;
+            }
+
+            opponentCard.cardStats.health -= card.attackingCard.GetComponent<Card>().cardStats.attack;
 
             //without using custom serializers, syncvar will not automatically synchronize custom data types values
+            //which means that syncVar won't work for the CardStats class
             //so we instead send an rpc to the opponent card for it to decrease its health
             opponentCard.RPCUpdateStats(opponentCard.cardStats); //rpc to send stat update back to clients 
-            Debug.Log(card.GetComponent<Card>().cardName + " attacked " + opponentCard.cardName + ".");
-            yield return new WaitForSeconds(2);
+
+            //check for attacked unit's death
+            if (opponentCard.cardStats.health <= 0)
+            {
+                opponentCard.ownerOnServer.gameObject.GetComponent<CardManager>().RemoveCardFromField(opponentCard.gameObject);
+                opponentCard.RPCDisableCard();
+                var attacker = _cardsOnCombat.Where(x => x.attackingCard == opponentCard.gameObject).FirstOrDefault();
+                attacker.isDead = true;
+
+            }
+            
+            yield return new WaitForSeconds(1);
 
         }
-
     }
+
 }
