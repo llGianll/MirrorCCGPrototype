@@ -95,7 +95,7 @@ public class CombatManager : NetworkBehaviour
                 }
             }
 
-            //get first card on field of that opponent 
+            //get first card on field of that opponent or null if there's no enemy on the field
             Card opponentCard = opponentCardManager._cardsOnField.FirstOrDefault()?.GetComponent<Card>();
 
             //[Todo]: add opponent player targeting here later 
@@ -105,12 +105,24 @@ public class CombatManager : NetworkBehaviour
                 continue;
             }
 
+            //activate markers for both attacker and target units 
+            card.attackingCard.GetComponent<CardUI>().RPCEnableCombatMarker(true);
+            opponentCard.gameObject.GetComponent<CardUI>().RPCEnableCombatMarker(false);
+
+            yield return new WaitForSeconds(0.5f);
+
             opponentCard.cardStats.health -= card.attackingCard.GetComponent<Card>().cardStats.attack;
 
             //without using custom serializers, syncvar will not automatically synchronize custom data types values
             //which means that syncVar won't work for the CardStats class
             //so we instead send an rpc to the opponent card for it to decrease its health
             opponentCard.RPCUpdateStats(opponentCard.cardStats); //rpc to send stat update back to clients 
+
+            yield return new WaitForSeconds(0.5f);
+
+            //deactivate markers for both attacker and target units 
+            card.attackingCard.GetComponent<CardUI>().RPCDisableCombatMarker();
+            opponentCard.gameObject.GetComponent<CardUI>().RPCDisableCombatMarker();
 
             //check for attacked unit's death
             if (opponentCard.cardStats.health <= 0)

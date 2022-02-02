@@ -84,7 +84,7 @@ public class Card : NetworkBehaviour
         else
             this.transform.SetParent(BoardManager.instance.board.enemyFrontlineArea.dropArea, false);
 
-        _cardUI.enableCardBack(false);
+        _cardUI.EnableCardBack(false);
 
     }
     

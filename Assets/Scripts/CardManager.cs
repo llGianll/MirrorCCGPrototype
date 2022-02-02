@@ -85,7 +85,7 @@ public class CardManager : NetworkBehaviour
             card.transform.SetParent(BoardManager.instance.board.playerHandArea.dropArea, false);
         else
         {
-            card.GetComponent<CardUI>().enableCardBack(true);
+            card.GetComponent<CardUI>().EnableCardBack(true);
             card.transform.SetParent(BoardManager.instance.board.enemyCardArea.dropArea, false);
         }
 

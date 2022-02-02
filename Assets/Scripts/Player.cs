@@ -11,6 +11,7 @@ public class Player : NetworkBehaviour
     public int currentMana { get { return _currentMana; }} 
 
     public static Player localPlayer;
+
     public override void OnStartLocalPlayer()
     {
         localPlayer = this;
@@ -43,7 +44,6 @@ public class Player : NetworkBehaviour
             BoardManager.instance.opponentInfo.manaText.text = "Mana: " + currentMana;
             BoardManager.instance.opponentInfo.healthText.text = "Health: " + currentHealth;
         }
-        
     }
 
     [Command]
