@@ -4,6 +4,7 @@ using Mirror;
 using UnityEngine.UI;
 using System.Linq;
 using System.Collections;
+using System;
 
 [System.Serializable]
 public class CardsOnCombat
@@ -24,6 +25,8 @@ public class CombatManager : NetworkBehaviour
 
     public List<CardsOnCombat> _cardsOnCombat = new List<CardsOnCombat>();
 
+    [SerializeField] GameObject _endButton;
+
     [SyncVar] int _readyPlayersCount;
 
     List<CardManager> _cardManagers = new List<CardManager>(); //player cardManager references
@@ -33,10 +36,28 @@ public class CombatManager : NetworkBehaviour
         instance = this;
     }
 
-    [Client]
-    public void EndMainPhaseBtn(Button endButton)
+    private void Start()
     {
-        endButton.interactable = false;
+        TurnManager.instance.OnCombatPhase += CombatEvaluation;
+        TurnManager.instance.OnMainPhase += ShowEndMainPhaseButton;
+    }
+
+
+
+    [Server]
+    private void ShowEndMainPhaseButton() => RPCShowEndMainButton();
+
+    [ClientRpc]
+    private void RPCShowEndMainButton()
+    {
+        Debug.Log("Show End Button");
+        _endButton.SetActive(true);
+    }
+
+    [Client]
+    public void EndMainPhaseBtn()
+    {
+        _endButton.SetActive(false);
         CMDUpdateReadyCount();
     }
 
@@ -45,7 +66,10 @@ public class CombatManager : NetworkBehaviour
     {
         _readyPlayersCount++;
         if (_readyPlayersCount >= 2)
-            CombatEvaluation();
+        {
+            TurnManager.instance.ManualPhaseChange(TurnPhase.Combat, 0.5f);
+            _readyPlayersCount = 0;
+        }
     }
 
     [Server]
@@ -137,6 +161,9 @@ public class CombatManager : NetworkBehaviour
             yield return new WaitForSeconds(1);
 
         }
+
+        //end of combat 
+        TurnManager.instance.ManualPhaseChange(TurnPhase.End, 0.5f);
     }
 
 }

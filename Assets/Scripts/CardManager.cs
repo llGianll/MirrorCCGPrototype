@@ -26,6 +26,13 @@ public class CardManager : NetworkBehaviour
     private void Awake()
     {
         GameManager.instance.OnGameStart += RPCStartGame;
+        TurnManager.instance.OnDrawPhase += RPCDrawCard;
+    }
+
+    [ClientRpc]
+    private void RPCDrawCard()
+    {
+        CmdDrawCards(1);
     }
 
     [ClientRpc]
@@ -33,14 +40,6 @@ public class CardManager : NetworkBehaviour
     {
         CmdLoadDeck();
         CmdDrawCards(3);
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            CmdDrawCards(1);
-        }
     }
 
     [Command]
@@ -82,7 +81,6 @@ public class CardManager : NetworkBehaviour
     [Command]
     private void CmdDrawCards(int drawCount)
     {
-        Debug.Log("Draw Starting Hand");
         for (int i = 0; i < drawCount; i++)
             _cardsOnHand.Add(_cardsOnDeck[i]);
 
