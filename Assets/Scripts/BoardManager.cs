@@ -25,7 +25,7 @@ public class BoardManager : MonoBehaviour
 [System.Serializable]
 public class Board
 {
-    public BoardArea playerCardArea;
+    public BoardArea playerHandArea;
     public BoardArea playerFrontlineArea;
     public BoardArea enemyCardArea;
     public BoardArea enemyFrontlineArea;

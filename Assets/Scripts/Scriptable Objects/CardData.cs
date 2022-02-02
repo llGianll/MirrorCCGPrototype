@@ -21,4 +21,14 @@ public class CardStats
     public int speed;
     public int attack;
     public int armor;
+
+    public CardStats() { } //default constructor
+
+    public CardStats(CardStats stats) //copy constructor
+    {
+        health = stats.health;
+        speed = stats.speed;
+        attack = stats.attack;
+        armor = stats.armor;
+    }
 }

@@ -81,7 +81,7 @@ public class CardManager : NetworkBehaviour
     private void RPCDrawCards(GameObject card)
     {
         if(hasAuthority)
-            card.transform.SetParent(BoardManager.instance.board.playerCardArea.dropArea, false);
+            card.transform.SetParent(BoardManager.instance.board.playerHandArea.dropArea, false);
         else
         {
             card.GetComponent<CardUI>().enableCardBack(true);

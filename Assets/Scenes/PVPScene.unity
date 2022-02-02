@@ -816,7 +816,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _board:
-    playerCardArea: {fileID: 808095123}
+    playerHandArea: {fileID: 808095123}
     playerFrontlineArea: {fileID: 1543081429}
     enemyCardArea: {fileID: 493872072}
     enemyFrontlineArea: {fileID: 624625514}
@@ -1791,7 +1791,7 @@ GameObject:
   - component: {fileID: 808095121}
   - component: {fileID: 808095123}
   m_Layer: 5
-  m_Name: Player Card Area
+  m_Name: Player Hand Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -15,8 +15,6 @@ public class Card : NetworkBehaviour
 
     Player _ownerOnServer;
 
-    
-
     public Player ownerOnServer //which of the copy of the players on the server owns this card
     {
         get { return _ownerOnServer; }
@@ -31,13 +29,14 @@ public class Card : NetworkBehaviour
     void OnCardNameUpdate(string oldValue, string newValue) => _cardUI.UpdateCardUI();
     void OnCardCostUpdate(int oldValue, int newValue) => _cardUI.UpdateCardUI();
 
-
     public void LoadCardData(CardData cardData)
     {
-        cardStats.armor = cardData.cardStats.armor;
-        cardStats.health = cardData.cardStats.health;
-        cardStats.speed = cardData.cardStats.speed;
-        cardStats.attack = cardData.cardStats.attack;
+        //cardStats.armor = cardData.cardStats.armor;
+        //cardStats.health = cardData.cardStats.health;
+        //cardStats.speed = cardData.cardStats.speed;
+        //cardStats.attack = cardData.cardStats.attack;
+
+        cardStats = new CardStats(cardData.cardStats);
 
         cardName = cardData.cardName;
         cardDescription = cardData.cardDescription;
@@ -54,7 +53,16 @@ public class Card : NetworkBehaviour
             RPCPlayCard();
             RPCDisplayPlayedCard();
         }
+        else
+        {
+            RPCReturnToHand();
+        }
+    }
 
+    [TargetRpc]
+    private void RPCReturnToHand()
+    {
+        gameObject.GetComponent<CardDragDrop>().ResetAnchoredPosition();
     }
 
     [TargetRpc]

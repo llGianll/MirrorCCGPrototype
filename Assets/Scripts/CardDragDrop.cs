@@ -7,13 +7,19 @@ public class CardDragDrop : NetworkBehaviour, IBeginDragHandler, IDragHandler, I
 {
     bool isDraggable = true;
     Card _card;
+    RectTransform _rectTransform;
+    Vector3 _defaultAnchoredPosition;
 
     private void Awake()
     {
         _card = GetComponent<Card>();
+        _rectTransform = GetComponent<RectTransform>();
     }
 
-    public void OnBeginDrag(PointerEventData eventData) { }
+    public void OnBeginDrag(PointerEventData eventData) 
+    {
+        _defaultAnchoredPosition = _rectTransform.anchoredPosition;
+    }
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -30,6 +36,10 @@ public class CardDragDrop : NetworkBehaviour, IBeginDragHandler, IDragHandler, I
         _card.CMDRequestPlayCard();
     }
 
-    
+    [Client]
+    public void ResetAnchoredPosition()
+    {
+        _rectTransform.anchoredPosition = _defaultAnchoredPosition;
+    }
 
 }
