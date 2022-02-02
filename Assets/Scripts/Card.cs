@@ -31,11 +31,6 @@ public class Card : NetworkBehaviour
 
     public void LoadCardData(CardData cardData)
     {
-        //cardStats.armor = cardData.cardStats.armor;
-        //cardStats.health = cardData.cardStats.health;
-        //cardStats.speed = cardData.cardStats.speed;
-        //cardStats.attack = cardData.cardStats.attack;
-
         cardStats = new CardStats(cardData.cardStats);
 
         cardName = cardData.cardName;

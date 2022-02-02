@@ -5,7 +5,7 @@ using System;
 
 public class Player : NetworkBehaviour
 {
-    [SyncVar] int _currenthealth = 30;
+    [SyncVar] int _currentHealth = 30;
     [SyncVar] int _currentMana = 5;
 
     public int currentMana { get { return _currentMana; }} 
@@ -16,26 +16,33 @@ public class Player : NetworkBehaviour
         localPlayer = this;
     }
 
-    private void Start()
+    private void Awake()
     {
-
+        GameManager.instance.OnGameStart += InitializePlayerValues;
     }
 
+    [Server]
     private void InitializePlayerValues()
     {
-        _currenthealth = 30;
+        _currentHealth = 30;
         _currentMana = 5;
 
-        //RPCUpdatePlayerValues();
+        RPCUpdatePlayerValues(_currentMana, _currentHealth);
     }
 
     [ClientRpc]
-    private void RPCUpdatePlayerValues(int currentMana)
+    private void RPCUpdatePlayerValues(int currentMana, int currentHealth)
     {
         if (isLocalPlayer)
+        {
             BoardManager.instance.playerInfo.manaText.text = "Mana: " + currentMana;
+            BoardManager.instance.playerInfo.healthText.text = "Health: " + currentHealth;
+        }
         else
+        {
             BoardManager.instance.opponentInfo.manaText.text = "Mana: " + currentMana;
+            BoardManager.instance.opponentInfo.healthText.text = "Health: " + currentHealth;
+        }
         
     }
 
@@ -44,7 +51,7 @@ public class Player : NetworkBehaviour
     {
         //only allow change of mana through the server 
         _currentMana -= cardCost;
-        RPCUpdatePlayerValues(_currentMana);
+        RPCUpdatePlayerValues(_currentMana, _currentHealth);
     }
 
     

@@ -21,15 +21,16 @@ public class CardManager : NetworkBehaviour
         clientInstance = this;
     }
 
-    private void Start()
+    private void Awake()
     {
-        //GameManager.instance.OnGameStart += RPCStartGame;
+        GameManager.instance.OnGameStart += RPCStartGame;
     }
 
     [ClientRpc]
     public void RPCStartGame()
     {
         CmdLoadDeck();
+        CmdDrawCards(5);
     }
 
     private void Update()
