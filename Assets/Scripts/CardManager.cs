@@ -14,6 +14,8 @@ public class CardManager : NetworkBehaviour
     public readonly SyncList<GameObject> _cardsOnField = new SyncList<GameObject>();
     public readonly SyncList<GameObject> _cardGraveyard = new SyncList<GameObject>();
 
+    List<GameObject> _tempCardsOnDeck = new List<GameObject>(); //used for shuffling
+
     public static CardManager clientInstance;
 
     public override void OnStartLocalPlayer()
@@ -30,22 +32,20 @@ public class CardManager : NetworkBehaviour
     public void RPCStartGame()
     {
         CmdLoadDeck();
-        CmdDrawCards(5);
+        CmdDrawCards(3);
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            CmdLoadDeck();
-            CmdDrawCards(5);
+            CmdDrawCards(1);
         }
     }
 
     [Command]
     private void CmdLoadDeck()
     {
-        Debug.Log("LOAD DECK");
         foreach (var cardData in _deckData.deck)
         {
             GameObject card = Instantiate(_cardPrefab, Vector3.zero, Quaternion.identity);
@@ -54,6 +54,28 @@ public class CardManager : NetworkBehaviour
             NetworkServer.Spawn(card, connectionToClient);
             card.transform.SetParent(this.transform);
             _cardsOnDeck.Add(card);
+        }
+
+        ShuffleDeck();
+    }
+
+    [Server]
+    private void ShuffleDeck()
+    {
+        //needs to use [Server] attribute because this function is called by a command which is only
+        //allowed to execute either server code or RPCs
+
+        //perform a member copy of the _cardsOnDeck list
+        foreach (var card in _cardsOnDeck)
+            _tempCardsOnDeck.Add(card);
+
+        _cardsOnDeck.Clear();
+
+        while (_tempCardsOnDeck.Count > 1)
+        {
+            int index = UnityEngine.Random.Range(0, _tempCardsOnDeck.Count);
+            _cardsOnDeck.Add(_tempCardsOnDeck[index]);
+            _tempCardsOnDeck.RemoveAt(index);
         }
     }
 
