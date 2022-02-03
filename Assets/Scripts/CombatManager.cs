@@ -31,6 +31,9 @@ public class CombatManager : NetworkBehaviour
 
     List<CardManager> _cardManagers = new List<CardManager>(); //player cardManager references
 
+    CardManager _opponentCardManager = new CardManager(); //used in combat evaluation
+
+
     private void Awake()
     {
         instance = this;
@@ -67,7 +70,7 @@ public class CombatManager : NetworkBehaviour
         _readyPlayersCount++;
         if (_readyPlayersCount >= 2)
         {
-            TurnManager.instance.ManualPhaseChange(TurnPhase.Combat, 0.5f);
+            TurnManager.instance.ManualPhaseChange(TurnPhase.Combat, 0f);
             _readyPlayersCount = 0;
         }
     }
@@ -102,68 +105,88 @@ public class CombatManager : NetworkBehaviour
     IEnumerator UnitCombat()
     {
         //[refactor] too much GetComponent calls, there should be a better way to structure this
+        //should make each player have a reference to their opponent player object at the very start of the game
         //It will be better if the server has its own version of the board state, but for now this unoptmized code will do
         foreach (var card in _cardsOnCombat)
         {
             if (card.isDead) //skip the card when it died before its turn 
                 continue;
 
-            //identify which is the opponent player 
-            CardManager opponentCardManager = new CardManager();
-            foreach (var manager in _cardManagers)
-            {
-                if (manager.GetComponent<Player>() != card.attackingCard.GetComponent<Card>().ownerOnServer)
-                {
-                    opponentCardManager = manager;
-                    break;
-                }
-            }
+            IdentifyOpponentCardManager(card);
 
             //get first card on field of that opponent or null if there's no enemy on the field
-            Card opponentCard = opponentCardManager._cardsOnField.FirstOrDefault()?.GetComponent<Card>();
+            Card opponentCard = _opponentCardManager._cardsOnField.FirstOrDefault()?.GetComponent<Card>();
+
+            //activate marker of attacking unit
+            card.attackingCard.GetComponent<CardUI>().RPCEnableCombatMarker(true);
 
             //[Todo]: add opponent player targeting here later 
             if (opponentCard == null)
-            {
-                Debug.Log("No Opponent Unit on Board!");
-                continue;
-            }
+                yield return StartCoroutine(AttackPlayer(card));
+            else
+                yield return StartCoroutine(AttackCardUnit(card, opponentCard));
 
-            //activate markers for both attacker and target units 
-            card.attackingCard.GetComponent<CardUI>().RPCEnableCombatMarker(true);
-            opponentCard.gameObject.GetComponent<CardUI>().RPCEnableCombatMarker(false);
-
-            yield return new WaitForSeconds(0.5f);
-
-            opponentCard.cardStats.health -= card.attackingCard.GetComponent<Card>().cardStats.attack;
-
-            //without using custom serializers, syncvar will not automatically synchronize custom data types values
-            //which means that syncVar won't work for the CardStats class
-            //so we instead send an rpc to the opponent card for it to decrease its health
-            opponentCard.RPCUpdateStats(opponentCard.cardStats); //rpc to send stat update back to clients 
-
-            yield return new WaitForSeconds(0.5f);
-
-            //deactivate markers for both attacker and target units 
-            card.attackingCard.GetComponent<CardUI>().RPCDisableCombatMarker();
-            opponentCard.gameObject.GetComponent<CardUI>().RPCDisableCombatMarker();
-
-            //check for attacked unit's death
-            if (opponentCard.cardStats.health <= 0)
-            {
-                opponentCard.ownerOnServer.gameObject.GetComponent<CardManager>().RemoveCardFromField(opponentCard.gameObject);
-                opponentCard.RPCDisableCard();
-                var attacker = _cardsOnCombat.Where(x => x.attackingCard == opponentCard.gameObject).FirstOrDefault();
-                attacker.isDead = true;
-
-            }
-            
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(1); //delay before processing the next match up
 
         }
 
         //end of combat 
         TurnManager.instance.ManualPhaseChange(TurnPhase.End, 0.5f);
     }
+
+    private void IdentifyOpponentCardManager(CardsOnCombat card)
+    {
+        foreach (var manager in _cardManagers)
+        {
+            if (manager.GetComponent<Player>() != card.attackingCard.GetComponent<Card>().ownerOnServer)
+            {
+                _opponentCardManager = manager;
+                break;
+            }
+        }
+    }
+
+    private IEnumerator AttackPlayer(CardsOnCombat card)
+    {
+        Debug.Log("No Opponent Unit on Board! Attacking Opponent Player instead");
+        yield return new WaitForSeconds(0.5f);
+
+        _opponentCardManager.gameObject.GetComponent<Player>().currentHealth -= card.attackingCard.GetComponent<Card>().cardStats.attack;
+
+        yield return new WaitForSeconds(0.5f);
+
+        card.attackingCard.GetComponent<CardUI>().RPCDisableCombatMarker();
+    }
+
+    private IEnumerator AttackCardUnit(CardsOnCombat card, Card opponentCard)
+    {
+        //activate marker of target unit 
+        opponentCard.gameObject.GetComponent<CardUI>().RPCEnableCombatMarker(false);
+
+        yield return new WaitForSeconds(0.5f);
+
+        opponentCard.cardStats.health -= card.attackingCard.GetComponent<Card>().cardStats.attack;
+
+        //without using custom serializers, syncvar will not automatically synchronize custom data types values
+        //which means that syncVar won't work for the CardStats class
+        //so we instead send an rpc to the opponent card for it to decrease its health
+        opponentCard.RPCUpdateStats(opponentCard.cardStats); //rpc to send stat update back to clients 
+
+        yield return new WaitForSeconds(0.5f);
+
+        card.attackingCard.GetComponent<CardUI>().RPCDisableCombatMarker();
+        opponentCard.gameObject.GetComponent<CardUI>().RPCDisableCombatMarker();
+
+        //check for attacked unit's death
+        if (opponentCard.cardStats.health <= 0)
+        {
+            opponentCard.ownerOnServer.gameObject.GetComponent<CardManager>().RemoveCardFromField(opponentCard.gameObject);
+            opponentCard.RPCDisableCard();
+            var attacker = _cardsOnCombat.Where(x => x.attackingCard == opponentCard.gameObject).FirstOrDefault();
+            attacker.isDead = true;
+
+        }
+    }
+
 
 }

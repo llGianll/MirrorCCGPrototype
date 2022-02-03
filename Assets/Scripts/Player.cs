@@ -8,7 +8,16 @@ public class Player : NetworkBehaviour
     [SyncVar] int _currentHealth;
     [SyncVar] int _currentMana;
 
-    public int currentMana { get { return _currentMana; }} 
+    public int currentMana { get { return _currentMana; } }
+    public int currentHealth
+    {
+        get { return _currentHealth; }
+        set 
+        { 
+            _currentHealth = Mathf.Clamp(value, 0, 99);
+            RPCUpdatePlayerValues(_currentMana, _currentHealth);
+        }
+    }
 
     public static Player localPlayer;
 
@@ -64,6 +73,7 @@ public class Player : NetworkBehaviour
     [Server]
     private void AddMana(int mana)
     {
+        mana = Mathf.Clamp(mana, 0, 7);
         _currentMana += mana;
         RPCUpdatePlayerValues(_currentMana, _currentHealth);
     }

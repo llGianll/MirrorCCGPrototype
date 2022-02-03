@@ -994,7 +994,7 @@ MonoBehaviour:
   syncInterval: 0.1
   _turnPhaseText: {fileID: 154338705}
   _turnCountText: {fileID: 1979830843}
-  _phaseChangeDelay: 1
+  _phaseChangeDelay: 1.5
 --- !u!114 &223699660
 MonoBehaviour:
   m_ObjectHideFlags: 0
