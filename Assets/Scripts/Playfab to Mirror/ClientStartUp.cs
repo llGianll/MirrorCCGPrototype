@@ -13,7 +13,7 @@ public class ClientStartUp : MonoBehaviour
 	public Configuration configuration;
 	public ServerStartUp serverStartUp;
 	public NetworkManager networkManager;
-	public KcpTransport kcpTransport;
+	public TelepathyTransport telepathyTransport;
 
 	public void OnLoginUserButtonClick()
 	{
@@ -90,14 +90,14 @@ public class ClientStartUp : MonoBehaviour
 		if(response == null) 
 		{
 			networkManager.networkAddress = configuration.ipAddress;
-			kcpTransport.Port = configuration.port;
+			telepathyTransport.port = configuration.port;
 			Debug.Log("null");
 		}
 		else
 		{
 			Debug.Log("**** ADD THIS TO YOUR CONFIGURATION **** -- IP: " + response.IPV4Address + " Port: " + (ushort)response.Ports[0].Num);
 			networkManager.networkAddress = response.IPV4Address;
-			kcpTransport.Port = (ushort)response.Ports[0].Num;
+			telepathyTransport.port = (ushort)response.Ports[0].Num;
 		}
 
 		networkManager.StartClient();
