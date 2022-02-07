@@ -31,7 +31,7 @@ public class CombatManager : NetworkBehaviour
 
     List<CardManager> _cardManagers = new List<CardManager>(); //player cardManager references
 
-    CardManager _opponentCardManager = new CardManager(); //used in combat evaluation
+    CardManager _opponentCardManager; //used in combat evaluation
 
 
     private void Awake()
