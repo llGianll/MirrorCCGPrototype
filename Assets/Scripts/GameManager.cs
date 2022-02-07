@@ -23,6 +23,11 @@ public class GameManager : NetworkBehaviour
         instance = this;
     }
 
+    public override void OnStartClient()
+    {
+        Debug.Log("Client Started");
+    }
+
     private void Update()
     {
         if (_waitingPanel.activeInHierarchy && hasStarted) //for turning off server waiting UI

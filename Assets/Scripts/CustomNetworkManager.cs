@@ -13,7 +13,7 @@ public class CustomNetworkManager : NetworkManager
 
         Debug.Log(numPlayers);
 
-        if (numPlayers == 2)
+        if (numPlayers >= 2)
             GameManager.instance.StartGame();
     }
 

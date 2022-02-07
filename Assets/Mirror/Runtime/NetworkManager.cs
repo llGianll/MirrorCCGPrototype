@@ -344,6 +344,8 @@ namespace Mirror
 
             NetworkClient.Connect(networkAddress);
 
+            Debug.Log(networkAddress);
+
             OnStartClient();
         }
 
