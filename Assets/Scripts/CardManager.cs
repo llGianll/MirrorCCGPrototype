@@ -26,11 +26,11 @@ public class CardManager : NetworkBehaviour
     private void Awake()
     {
         GameManager.instance.OnGameStart += RPCStartGame;
-        TurnManager.instance.OnDrawPhase += RPCDrawCard;
+        TurnManager.instance.OnDrawPhase += RPCDrawPhaseCallback;
     }
 
     [ClientRpc]
-    private void RPCDrawCard()
+    private void RPCDrawPhaseCallback()
     {
         CmdDrawCards(1);
     }
@@ -38,6 +38,7 @@ public class CardManager : NetworkBehaviour
     [ClientRpc]
     public void RPCStartGame()
     {
+        //load deck data and draw initial cards
         CmdLoadDeck();
         CmdDrawCards(3);
     }

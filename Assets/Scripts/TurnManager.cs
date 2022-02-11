@@ -19,8 +19,6 @@ public class TurnManager : NetworkBehaviour
 
     public static TurnManager instance;
 
-    //turn phase events, [refactor] make a class for every phase instead, since right now you need to add an event here everytime you edit the enum 
-    //editing on multiple places can be error-prone, but this is good for now
     public event Action<int> OnStartPhase = delegate { };
     public event Action OnDrawPhase = delegate { };
     public event Action OnMainPhase = delegate { };
@@ -37,12 +35,12 @@ public class TurnManager : NetworkBehaviour
 
     private void Start()
     {
-        GameManager.instance.OnGameStart += StartGame;
+        GameManager.instance.OnGameStart += StartTurnLoop;
     }
 
-    private void StartGame()
+    private void StartTurnLoop()
     {
-        //this only executes on the server since this is a non-spawned networked game object 
+        //this only executes on the server since this is a networked scene game object 
         ManualPhaseChange(TurnPhase.Start, 0.1f);
     }
 
@@ -92,10 +90,7 @@ public class TurnManager : NetworkBehaviour
 
     //SyncVar hooks 
     public void SyncOnTurnCountChanged(int oldValue, int newValue) => _turnCountText.text = "Turn " + newValue;
-    public void SyncOnTurnPhaseChanged(TurnPhase oldValue, TurnPhase newValue)
-    {
-        _turnPhaseText.text = newValue.ToString() + " Phase";
-    }
+    public void SyncOnTurnPhaseChanged(TurnPhase oldValue, TurnPhase newValue) => _turnPhaseText.text = newValue.ToString() + " Phase";
 }
 
 public enum TurnPhase

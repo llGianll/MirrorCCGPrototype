@@ -1,18 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
-using UnityEngine.UI;
 using System.Linq;
 using System.Collections;
-using System;
 
 [System.Serializable]
-public class CardsOnCombat
+public class CardOnCombat
 {
     public GameObject attackingCard;
     public bool isDead = false;
 
-    public CardsOnCombat(GameObject card, bool isDead)
+    public CardOnCombat(GameObject card, bool isDead)
     {
         attackingCard = card;
         this.isDead = isDead;
@@ -23,7 +21,7 @@ public class CombatManager : NetworkBehaviour
 {
     public static CombatManager instance;
 
-    public List<CardsOnCombat> _cardsOnCombat = new List<CardsOnCombat>();
+    public List<CardOnCombat> _cardsOnCombat = new List<CardOnCombat>();
 
     [SerializeField] GameObject _endButton;
 
@@ -32,7 +30,6 @@ public class CombatManager : NetworkBehaviour
     List<CardManager> _cardManagers = new List<CardManager>(); //player cardManager references
 
     CardManager _opponentCardManager; //used in combat evaluation
-
 
     private void Awake()
     {
@@ -45,17 +42,11 @@ public class CombatManager : NetworkBehaviour
         TurnManager.instance.OnMainPhase += ShowEndMainPhaseButton;
     }
 
-
-
     [Server]
     private void ShowEndMainPhaseButton() => RPCShowEndMainButton();
 
     [ClientRpc]
-    private void RPCShowEndMainButton()
-    {
-        Debug.Log("Show End Button");
-        _endButton.SetActive(true);
-    }
+    private void RPCShowEndMainButton() => _endButton.SetActive(true);
 
     [Client]
     public void EndMainPhaseBtn()
@@ -78,23 +69,26 @@ public class CombatManager : NetworkBehaviour
     [Server]
     private void CombatEvaluation()
     {
-        //[refactor] unoptimized & unclean code, does the job for now
-        Debug.Log("Start Combat");
+        //find CardManager objects of the players on the server
         if (_cardManagers.Count <= 0)
             _cardManagers = FindObjectsOfType<CardManager>().ToList();
-
-        if (_cardManagers.Count <= 0)
+        
+        //_cardManager empty list check 
+        if (_cardManagers.Count <= 0) 
             return;
 
-        _cardsOnCombat.Clear();
+        _cardsOnCombat.Clear(); //clear _cardsOnCombat list if there's a content from the previous turn. 
 
+        //create a temporary list combining all card units placed on the battlefield and order the list elements 
+        //through the speed stat ordered from highest to lowest
         var tempList = _cardManagers[0]._cardsOnField.Concat(_cardManagers[1]._cardsOnField)
                                          .OrderByDescending(x => x.GetComponent<Card>().cardStats.speed)
                                          .ToList();
 
+        //add each card on the temporary list to the _cardsOnCombat list.
         foreach (var cardGO in tempList)
         {
-            CardsOnCombat cardEntry = new CardsOnCombat(cardGO, false);
+            CardOnCombat cardEntry = new CardOnCombat(cardGO, false);
             _cardsOnCombat.Add(cardEntry);
         }
 
@@ -104,9 +98,6 @@ public class CombatManager : NetworkBehaviour
     [Server]
     IEnumerator UnitCombat()
     {
-        //[refactor] too much GetComponent calls, there should be a better way to structure this
-        //should make each player have a reference to their opponent player object at the very start of the game
-        //It will be better if the server has its own version of the board state, but for now this unoptmized code will do
         foreach (var card in _cardsOnCombat)
         {
             if (card.isDead) //skip the card when it died before its turn 
@@ -134,7 +125,7 @@ public class CombatManager : NetworkBehaviour
         TurnManager.instance.ManualPhaseChange(TurnPhase.End, 0.5f);
     }
 
-    private void IdentifyOpponentCardManager(CardsOnCombat card)
+    private void IdentifyOpponentCardManager(CardOnCombat card)
     {
         foreach (var manager in _cardManagers)
         {
@@ -146,9 +137,8 @@ public class CombatManager : NetworkBehaviour
         }
     }
 
-    private IEnumerator AttackPlayer(CardsOnCombat card)
+    private IEnumerator AttackPlayer(CardOnCombat card)
     {
-        Debug.Log("No Opponent Unit on Board! Attacking Opponent Player instead");
         yield return new WaitForSeconds(0.5f);
 
         _opponentCardManager.gameObject.GetComponent<Player>().currentHealth -= card.attackingCard.GetComponent<Card>().cardStats.attack;
@@ -158,7 +148,7 @@ public class CombatManager : NetworkBehaviour
         card.attackingCard.GetComponent<CardUI>().RPCDisableCombatMarker();
     }
 
-    private IEnumerator AttackCardUnit(CardsOnCombat card, Card opponentCard)
+    private IEnumerator AttackCardUnit(CardOnCombat card, Card opponentCard)
     {
         //activate marker of target unit 
         opponentCard.gameObject.GetComponent<CardUI>().RPCEnableCombatMarker(false);

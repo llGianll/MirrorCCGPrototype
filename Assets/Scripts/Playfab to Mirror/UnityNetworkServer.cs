@@ -8,6 +8,9 @@
 
 	public class UnityNetworkServer : NetworkBehaviour
 	{
+		//[Note] this class is mostly unused since we only need to handle the server connection and disconnection on this project
+		//still keeping this class in case we can think of any necessary logic to execute on our game for the other callbacks
+
 		public Configuration configuration;
 
 		public PlayerEvent OnPlayerAdded = new PlayerEvent();
@@ -27,44 +30,49 @@
 
 		public class PlayerEvent : UnityEvent<string> { }
 
-		void Awake()
-		{
-			if (configuration.buildType == BuildType.REMOTE_SERVER)
-			{
-				AddRemoteServerListeners();
-			}
-		}
 
-		private void AddRemoteServerListeners()
-		{
-			Debug.Log("[UnityNetworkServer].AddRemoteServerListeners");
-			//NetworkServer.RegisterHandler(MsgType.Connect, OnServerConnect);
-			//NetworkServer.RegisterHandler(MsgType.Disconnect, OnServerDisconnect);
-			//NetworkServer.RegisterHandler(MsgType.Error, OnServerError);
-			//NetworkServer.RegisterHandler(CustomGameServerMessageTypes.ReceiveAuthenticate, OnReceiveAuthenticate);
-		}
+        #region We're only using these functions for this particular project
 
-		public void StartServer()
-		{
-			NetworkServer.Listen(Port);
-		}
+        public void StartServer()
+        {
+            NetworkServer.Listen(Port);
+        }
 
-		private void OnApplicationQuit()
-		{
-			NetworkServer.Shutdown();
-		}
+        private void OnApplicationQuit()
+        {
+            NetworkServer.Shutdown();
+        }
+        #endregion
 
-        //private void OnReceiveAuthenticate(NetworkMessage netMsg)
-        //{
-        //	var conn = _connections.Find(c => c.ConnectionId == netMsg.conn.connectionId);
-        //	if (conn != null)
-        //	{
-        //		var message = netMsg.ReadMessage<ReceiveAuthenticateMessage>();
-        //		conn.PlayFabId = message.PlayFabId;
-        //		conn.IsAuthenticated = true;
-        //		OnPlayerAdded.Invoke(message.PlayFabId);
-        //	}
-        //}
+        #region Unused Commented PlayFabMultiplayerAgent Callbacks
+        void Awake()
+        {
+            if (configuration.buildType == BuildType.REMOTE_SERVER)
+            {
+                AddRemoteServerListeners();
+            }
+        }
+
+        private void AddRemoteServerListeners()
+        {
+            Debug.Log("[UnityNetworkServer].AddRemoteServerListeners");
+            //NetworkServer.RegisterHandler(MsgType.Connect, OnServerConnect);
+            //NetworkServer.RegisterHandler(MsgType.Disconnect, OnServerDisconnect);
+            //NetworkServer.RegisterHandler(MsgType.Error, OnServerError);
+            //NetworkServer.RegisterHandler(CustomGameServerMessageTypes.ReceiveAuthenticate, OnReceiveAuthenticate);
+        }
+
+        private void OnReceiveAuthenticate(NetworkMessage netMsg)
+        {
+            //var conn = _connections.Find(c => c.ConnectionId == netMsg.conn.connectionId);
+            //if (conn != null)
+            //{
+            //    var message = netMsg.ReadMessage<ReceiveAuthenticateMessage>();
+            //    conn.PlayFabId = message.PlayFabId;
+            //    conn.IsAuthenticated = true;
+            //    OnPlayerAdded.Invoke(message.PlayFabId);
+            //}
+        }
 
         private void OnServerConnect(NetworkMessage netMsg)
         {
@@ -83,7 +91,7 @@
 
         private void OnServerError(NetworkMessage netMsg)
         {
-			Debug.Log("OnServerError");
+            Debug.Log("OnServerError");
             //try
             //{
             //    var error = netMsg.ReadMessage<ErrorMessage>();
@@ -109,7 +117,8 @@
             //    }
             //    _connections.Remove(conn);
             //}
-        }
+        } 
+        #endregion
 
     }
 

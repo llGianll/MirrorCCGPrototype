@@ -21,11 +21,7 @@ public class Card : NetworkBehaviour
         set { _ownerOnServer = value; }
     }
 
-    //[refactor] hooks later
-    void OnCardStatsUpdate(CardStats oldValue, CardStats newValue)
-    {
-        _cardUI.UpdateCardUI();
-    }
+    void OnCardStatsUpdate(CardStats oldValue, CardStats newValue) => _cardUI.UpdateCardUI();
     void OnCardNameUpdate(string oldValue, string newValue) => _cardUI.UpdateCardUI();
     void OnCardCostUpdate(int oldValue, int newValue) => _cardUI.UpdateCardUI();
 
@@ -49,9 +45,7 @@ public class Card : NetworkBehaviour
             RPCDisplayPlayedCard();
         }
         else
-        {
             RPCReturnToHand();
-        }
     }
 
     [TargetRpc]
@@ -77,8 +71,6 @@ public class Card : NetworkBehaviour
     {
         //[Note] This uses the [ClientRpc] attribute because we want both clients to update their respective fields
         //set the card to player field (lower half) if you own it and if not set the card to the opponent's field
-        //also hide the card(using card back image) if you don't own it
-
         if (hasAuthority)
             this.transform.SetParent(BoardManager.instance.board.playerFrontlineArea.dropArea, false);
         else
@@ -87,7 +79,6 @@ public class Card : NetworkBehaviour
         _cardUI.EnableCardBack(false);
 
     }
-    
 
     [ClientRpc]
     public void RPCUpdateStats(CardStats stats)
@@ -99,6 +90,8 @@ public class Card : NetworkBehaviour
     [ClientRpc]
     public void RPCDisableCard()
     {
+        //we just disable the card instead of destroying it over the network
+        //since some card games allow the player to revive a card unit from the graveyard
         gameObject.SetActive(false);
     }
 }

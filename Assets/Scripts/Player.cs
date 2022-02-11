@@ -37,6 +37,14 @@ public class Player : NetworkBehaviour
     }
 
     [Server]
+    private void AddMana(int mana)
+    {
+        mana = Mathf.Clamp(mana, 0, 7);
+        _currentMana += mana;
+        RPCUpdatePlayerValues(_currentMana, _currentHealth);
+    }
+
+    [Server]
     private void InitializePlayerValues()
     {
         _currentHealth = 30;
@@ -69,12 +77,5 @@ public class Player : NetworkBehaviour
         RPCUpdatePlayerValues(_currentMana, _currentHealth);
     }
 
-    //TurnManager event subscribers
-    [Server]
-    private void AddMana(int mana)
-    {
-        mana = Mathf.Clamp(mana, 0, 7);
-        _currentMana += mana;
-        RPCUpdatePlayerValues(_currentMana, _currentHealth);
-    }
+    
 }

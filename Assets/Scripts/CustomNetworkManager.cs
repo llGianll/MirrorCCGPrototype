@@ -8,10 +8,9 @@ public class CustomNetworkManager : NetworkManager
 
     public override void OnServerAddPlayer(NetworkConnection conn)
     {
+        //same implementation of player instantiation and networkserver player registration
         GameObject player = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
         NetworkServer.AddPlayerForConnection(conn, player);
-
-        Debug.Log(numPlayers);
 
         if (numPlayers >= 2)
             GameManager.instance.StartGame();
